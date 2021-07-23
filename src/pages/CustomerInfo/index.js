@@ -1,7 +1,16 @@
 import React from 'react';
-import { Button, Form, FormGroup, Input, Label, Container } from 'reactstrap';
+import { Button, Form, FormGroup, Input, Label } from 'reactstrap';
 
 export default class SignUp extends React.Component{
+
+    signup(e){
+
+    }
+
+    edit(e){
+        
+    }
+
     render(){
         //TODO: Implement render function
         return <>

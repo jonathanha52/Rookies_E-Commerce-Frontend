@@ -9,48 +9,41 @@ import {
     NavLink,
     UncontrolledDropdown,
     DropdownToggle,
-    DropdownMenu,
     DropdownItem,
-    NavbarText,
-    Form,
     Input,
     Button,
-    FormGroup,
     InputGroup,
-    InputGroupAddon
+    InputGroupAddon,
+    ButtonDropdown,
+    DropdownMenu,
   } from 'reactstrap';
+import { UserContext } from '../../context/UserContext';
 import './navbar.css'
+
 export default class NavBar extends React.Component{
     constructor(props){
         super(props);
         this.state = {
             isOpen: false,
-            setIsOpen: false,
-            isLoggedIn: false,
-            categories: [],
+            dropDownOpened: false,
             user:{}
         };
         this.toggle = this.toggle.bind(this);
+        this.toggleDropDown = this.toggleDropDown.bind(this);
     }
-    componentDidMount(){
-        //TODO: Get all category from API
-    }
+    
     toggle(){
         this.setState({
             setIsOpen: !this.state.isOpen
         });
     }
+    toggleDropDown(){
+        this.setState({
+            dropDownOpened: !this.state.dropDownOpened
+        })
+    }
     render(){
         //TODO: Dropdown list items are placeholder, replace with categories
-        let status;
-        if(this.state.isLoggedIn)
-            status = <NavbarText>Hello, {this.state.username}</NavbarText>
-        else{
-            status = <>
-                <NavLink href="/signin">Login</NavLink>
-                <NavLink href="/signup">Sign up</NavLink>
-            </>
-        }
         return <>
            <Navbar color="light" light expand="md" id="nav">
                 <NavbarBrand href="/">E-Commerce</NavbarBrand>
@@ -66,14 +59,14 @@ export default class NavBar extends React.Component{
                         </DropdownToggle>
                         <DropdownMenu right>
                             <DropdownItem>
-                                <NavLink href="/customers">Manage customes</NavLink>
+                                <NavLink href="/admin/customers">Manage customes</NavLink>
                             </DropdownItem>
                             <DropdownItem>
-                                <NavLink href="/products">Manage product</NavLink>
+                                <NavLink href="/admin/products">Manage product</NavLink>
                             </DropdownItem>
                         </DropdownMenu>
                         </UncontrolledDropdown>
-                        <UncontrolledDropdown nav inNavbar>
+                        {/* <UncontrolledDropdown nav inNavbar>
                         <DropdownToggle nav caret>
                             Categories
                         </DropdownToggle>
@@ -85,7 +78,7 @@ export default class NavBar extends React.Component{
                                 <NavLink href="/products">Categories 2</NavLink>
                             </DropdownItem>
                         </DropdownMenu>
-                        </UncontrolledDropdown>
+                        </UncontrolledDropdown> */}
                     </Nav>
                     <InputGroup className="w-50">
                         <Input placeholder="Search"></Input>
@@ -94,8 +87,24 @@ export default class NavBar extends React.Component{
                         </InputGroupAddon>
                     </InputGroup>
                 </Collapse>
-                {status}
+                {this.context?
+                    
+                <ButtonDropdown isOpen={this.state.dropDownOpened} toggle={this.toggleDropDown}>
+                    <DropdownToggle>{this.context.username}</DropdownToggle>
+                    <DropdownMenu>
+                        <DropdownItem>Edit profile</DropdownItem>
+                        <DropdownItem divider></DropdownItem>
+                        <DropdownItem className="text-danger">Logout</DropdownItem>
+                    </DropdownMenu>
+                </ButtonDropdown>
+                :
+                    <>
+                        <NavLink href="/signin">Login</NavLink>
+                        <NavLink href="/signup">Sign up</NavLink>
+                    </>
+                }
             </Navbar>
         </>;
     }
 }
+NavBar.contextType=UserContext;
