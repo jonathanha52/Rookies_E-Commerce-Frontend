@@ -1,24 +1,27 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
+import React from 'react'
 import Login from './pages/Login';
 import SignUp from './pages/CustomerInfo'
 import NavBar from './components/Navbar';
-import Item from './components/Item';
-import Comment from './components/Comment'
 import { BrowserRouter, Switch, Route } from 'react-router-dom';
-import ProductInfo from './pages/ProductInfo';
-import EditProduct from './pages/EditProduct';
+import ProductPage from './pages/ProductPage';
+import EditProduct from './pages/ProductInfo';
 import CustomerManage from './pages/CustomerManage';
-
-const UserContext = React.createContext({});
+import MainPage from './pages/MainPage';
+import { UserContext } from './context/UserContext';
+import ProductManage from './pages/ProductManage';
 
 function App() {
   return (
-    <UserContext.Provider>
+    <UserContext.Provider value={{username: "dangkhoa"}}>
       <BrowserRouter>
         <div>
           <NavBar />
           <Switch>
+            <Route exact path="/">
+              <MainPage />  
+            </Route>
             <Route exact path="/signin">
               <Login />
             </Route>
@@ -26,19 +29,19 @@ function App() {
               <SignUp />
             </Route>
             <Route exact path="/About">
-              <h1>About me</h1>
+              <center>
+                <h1>About me</h1>
+              </center>
             </Route>
-            <Route exact path="/Comment">
-              <Comment username="DangKhoa" comment="Template text"></Comment>
-            </Route>
-            <Route exact path="/info">
-              <ProductInfo></ProductInfo>
-            </Route>
+            <Route path="/product/:id" component={ProductPage}/>
             <Route exact path="/edit">
               <EditProduct></EditProduct>
             </Route>
-            <Route exact path="/customers">
+            <Route exact path="/admin/customers">
               <CustomerManage></CustomerManage>
+            </Route>
+            <Route exact path="/admin/products">
+              <ProductManage></ProductManage>
             </Route>
             <Route>
               <center>

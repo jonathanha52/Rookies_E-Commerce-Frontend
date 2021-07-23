@@ -1,17 +1,18 @@
 import React from 'react';
-import { Container, Row, Col, Card, CardBody, CardTitle, CardText, Button, InputGroup, InputGroupAddon, Input } from 'reactstrap';
+import { Container, Row, Col, Card, CardBody, CardTitle, CardText, Button, Input } from 'reactstrap';
 import Comment from '../../components/Comment';
 import "./productInfo.css";
+import SpringHelper from '../../api/spring_api';
 
-export default class ProductInfo extends React.Component{
+export default class ProductPage extends React.Component{
     constructor(props){
         super(props);
         this.state ={
             product:{
                 id:1,
-                name:"Test product",
-                description:"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque consequat consequat tellus sed tincidunt. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nulla faucibus nec ipsum ut fermentum. Maecenas sodales, tellus a iaculis commodo, ex nunc interdum tortor, at molestie nisl lorem eu tellus. Sed bibendum velit a elit ornare commodo. Suspendisse ultricies turpis id dui porttitor, eget sagittis massa bibendum. Aliquam magna lacus, tempus id ultrices id, accumsan eget metus. Nullam eget mollis ligula. Praesent tincidunt risus nec massa aliquet tincidunt. Aenean pretium ex fermentum, aliquet turpis eget, sagittis felis.",
-                img_url:"",
+                productName:"Test product",
+                productDescription:"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque consequat consequat tellus sed tincidunt. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nulla faucibus nec ipsum ut fermentum. Maecenas sodales, tellus a iaculis commodo, ex nunc interdum tortor, at molestie nisl lorem eu tellus. Sed bibendum velit a elit ornare commodo. Suspendisse ultricies turpis id dui porttitor, eget sagittis massa bibendum. Aliquam magna lacus, tempus id ultrices id, accumsan eget metus. Nullam eget mollis ligula. Praesent tincidunt risus nec massa aliquet tincidunt. Aenean pretium ex fermentum, aliquet turpis eget, sagittis felis.",
+                imgUrl:"http://via.placeholder.com/250x330.svg",
                 price:100000,
                 unit:"unit",
                 created_by:"admin",
@@ -32,6 +33,14 @@ export default class ProductInfo extends React.Component{
           });
         this.onQuantityChange = this.onQuantityChange.bind(this);
     }
+    componentDidMount(){
+        let id = this.props.match.params.id;
+        SpringHelper.get("products/id="+ id)
+        .then((response) => {
+            this.setState({product: response.data})
+        })
+        console.log(this.props.match.params.id);
+    }
     formatCurrency(currency){
         return(this.currencyFormatter.format(currency));
     }
@@ -43,23 +52,32 @@ export default class ProductInfo extends React.Component{
             <Row>
                 <Col xs="4">
                     <center>
-                        <img src="http://via.placeholder.com/250x330.svg" alt="Failed to load"></img>
+                        <img src={this.state.product.imgUrl} alt="Failed to load"></img>
                     </center>
                 </Col>
                 <Col>
                     <Card>
                         <CardBody>
-                            <CardTitle tag="h3">{this.state.product.name}</CardTitle>
+                            <CardTitle tag="h3">{this.state.product.productName}</CardTitle>
                             <CardBody>
                                 <CardTitle tag="h4">Price: {this.formatCurrency(this.state.product.price)}</CardTitle>
                             </CardBody>
-                            <CardText>{this.state.product.description}</CardText>
+                            <CardText>{this.state.product.productDescription}</CardText>
                             <CardText>Quantity</CardText>
                             <Input min="1" type="number" className="w-25" value={this.state.quantity} onChange={this.onQuantityChange}/>
                             <Button className="top-buffer">Add to card</Button>
                         </CardBody>
                     </Card>
                 </Col>
+            </Row>
+            <Row className="top-buffer">
+                <h5>Your comment</h5>
+            </Row>
+            <Row className="top-buffer">
+                <Comment username="admin" comment="This is a test comment"/>
+            </Row>
+            <Row className="top-buffer">
+                <h5>Other's comment</h5>
             </Row>
             <Row className="top-buffer">
                 <Comment username="admin" comment="This is a test comment"/>
