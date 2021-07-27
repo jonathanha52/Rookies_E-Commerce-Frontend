@@ -23,20 +23,47 @@ export default class MainPage extends React.Component{
     }
     componentDidMount(){
 
-        SpringHelper.get("products")
-        .then((response) => {
-            this.setState({product: response.data})
+        SpringHelper.get("products/public")
+        .then(response => {
+            if(response.status === 200){
+                this.setState({product: response.data})
+            }
+            else{
+                this.setState({product: [{
+                    id: 0,
+                    productName: "test product",
+                    productDescription: "lorem ipsum",
+                    category:{name: "test"},
+                    price: 0,
+                    unit: "bo",
+                    imgUrl: "http://via.placeholder.com/300x300",
+                    createdDate: "00-00-0000",
+                    updatedDate: "00-00-0000"
+                }]})
+            }
+        })
+        .catch(exception => {
+            alert("Error when making request" + exception);
         })
 
-        SpringHelper.get("category")
+        SpringHelper.get("category/public")
         .then(response => {
-            this.setState({categories: response.data.concat([{id: 4, description: "", name:"All"}])})
+            if(response.status === 200)
+                this.setState({categories: [{id: 0, description: "", name:"All"}].concat(response.data)})
+            else{
+                this.setState({categories: [{id: 0, description: "", name:"All"}]})
+            }
         })
         
     }
-    filter(e){
+    applyFilter(e){
         e.preventDefault();
         console.log(e.target)
+    }
+    sortProduct(type){
+        if(type === "price"){
+            return 
+        }
     }
     render(){
         return <Container>
@@ -47,11 +74,11 @@ export default class MainPage extends React.Component{
             </Row>
             <Row className="mt-5">
                 <Col xs="4">
-                    <Form>
+                    <Form onSubmit={this.applyFilter}>
                         <FormGroup row className="mt-3 mb-3">
-                            <Label for="sort-type" sm={3}>Sort by:</Label>
+                            <Label for="sortType" sm={3}>Sort by:</Label>
                             <Col>
-                                <Input type="select" name="sort-type" id="sort-type">
+                                <Input type="select" name="sortType" id="sortType">
                                     <option value="none">None</option>
                                     <option value="price">Price</option>
                                     <option value="name">Name</option>
@@ -61,9 +88,9 @@ export default class MainPage extends React.Component{
                             </Col>
                         </FormGroup>
                         <FormGroup row className="mt-3 mb-3">
-                            <Label for="sort-order" sm={3}>Order by:</Label>
+                            <Label for="sortOrder" sm={3}>Order by:</Label>
                             <Col>
-                                <Input type="select" name="sort-order" id="sort-order">
+                                <Input type="select" name="sortOrder" id="sortOrder">
                                     <option value="descending">Descending</option>
                                     <option value="ascending">Ascending</option>
                                 </Input>

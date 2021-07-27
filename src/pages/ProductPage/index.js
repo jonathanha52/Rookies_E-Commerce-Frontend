@@ -3,6 +3,8 @@ import { Container, Row, Col, Card, CardBody, CardTitle, CardText, Button, Input
 import Comment from '../../components/Comment';
 import "./productInfo.css";
 import SpringHelper from '../../api/spring_api';
+import { Rating } from 'react-simple-star-rating';
+import { Link } from 'react-router-dom';
 
 export default class ProductPage extends React.Component{
     constructor(props){
@@ -20,8 +22,13 @@ export default class ProductPage extends React.Component{
                 created_date: new Date(),
                 modified_date: new Date()
             },
+            average: 0,
+            ratingValue: 0,
             rating:[],
-            quantity:1
+            quantity:1,
+            customer:null,
+            validComment: true,
+            userComment: null
         }
         this.currencyFormatter = new Intl.NumberFormat('en-US', {
             style: 'currency',
@@ -32,20 +39,46 @@ export default class ProductPage extends React.Component{
             //maximumFractionDigits: 0, // (causes 2500.99 to be printed as $2,501)
           });
         this.onQuantityChange = this.onQuantityChange.bind(this);
+        this.handleRating = this.handleRating.bind(this);
+        this.getCommentFromUser = this.getCommentFromUser.bind(this);
     }
     componentDidMount(){
         let id = this.props.match.params.id;
-        SpringHelper.get("products/id="+ id)
+        SpringHelper.get("products/public/id="+ id)
         .then((response) => {
             this.setState({product: response.data})
         })
-        console.log(this.props.match.params.id);
+
+        SpringHelper.get("ratings/public/productId="+id)
+        .then((response) => {
+            console.log(response);
+            if(response.state === 200){
+                this.setState({rating: response.data});
+            }
+        })
+        .catch(exception => {
+            console.log(exception);
+        })
+        this.getCommentFromUser();
     }
     formatCurrency(currency){
         return(this.currencyFormatter.format(currency));
     }
     onQuantityChange(e){
         this.setState({quantity: e.target.value});
+    }
+    handleRating(rate){
+        this.setState({ratingValue: rate});
+    }
+    getCommentFromUser(){
+        let userId = window.localStorage.getItem("userId");
+        if(userId != null){
+            for(let i = 0; i < this.state.rating.length; i++){
+                if(this.state.rating[i].user.userID == userId)
+                    this.setState({userComment: this.state.rating[i]});
+                    return; 
+            }
+        }
     }
     render(){
         return <Container className="mt-4">
@@ -56,7 +89,7 @@ export default class ProductPage extends React.Component{
                     </center>
                 </Col>
                 <Col>
-                    <Card>
+                    <Card className="no-border">
                         <CardBody>
                             <CardTitle tag="h3">{this.state.product.productName}</CardTitle>
                             <CardBody>
@@ -73,15 +106,40 @@ export default class ProductPage extends React.Component{
             <Row className="top-buffer">
                 <h5>Your comment</h5>
             </Row>
+            {this.state.userComment != null ? 
             <Row className="top-buffer">
                 <Comment username="admin" comment="This is a test comment"/>
             </Row>
+            :
+            (window.localStorage.getItem("username") ? <Row className="top-buffer">
+                <Card>
+                    <CardBody>
+                        <CardTitle>{window.localStorage.getItem("username")}</CardTitle>
+                        <Rating onClick={this.handleRating} ratingValue={this.state.ratingValue}></Rating>
+                        <Input type="textarea" id="comment" name="comment"></Input>
+                    </CardBody>
+                </Card>
+            </Row>
+            :
+            <Row>
+                <Card>
+                    <CardBody>
+                        <CardText>You must <Link to="/signin">log in</Link> to comment</CardText>
+                    </CardBody>
+                </Card>
+            </Row>)}
             <Row className="top-buffer">
                 <h5>Other's comment</h5>
             </Row>
-            <Row className="top-buffer">
-                <Comment username="admin" comment="This is a test comment"/>
-            </Row>
+            {
+                this.state.rating.map(entry => (
+                    <>
+                    <Row className="top-buffer">
+                        <Comment username={entry.user.username} comment={entry.comment} rating={entry.rating}/>
+                    </Row>
+                    </>
+                ))
+            }
         </Container>;
     }
 }

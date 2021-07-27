@@ -16,20 +16,37 @@ import {
     InputGroupAddon,
     ButtonDropdown,
     DropdownMenu,
+    Modal,
+    ModalHeader,
+    ModalBody,
+    ModalFooter
   } from 'reactstrap';
-import { UserContext } from '../../context/UserContext';
+import { withRouter } from 'react-router';
+import SpringHelper from '../../api/spring_api';
+
 import './navbar.css'
 
-export default class NavBar extends React.Component{
+class NavBar extends React.Component{
     constructor(props){
         super(props);
         this.state = {
             isOpen: false,
             dropDownOpened: false,
-            user:{}
+            confirmModal: false,
+            user:{},
+            username:"",
+            role: "CUSTOMER"
         };
         this.toggle = this.toggle.bind(this);
         this.toggleDropDown = this.toggleDropDown.bind(this);
+        this.toggleConfirmModal = this.toggleConfirmModal.bind(this);
+        this.logout = this.logout.bind(this);
+    }
+    componentDidMount(){
+        this.setState({
+            username: window.localStorage.getItem("username") == null ? "" : window.localStorage.getItem("username"),
+            role: window.localStorage.getItem("role") == null ? "CUSTOMER" : window.localStorage.getItem("role")
+        })
     }
     
     toggle(){
@@ -42,9 +59,42 @@ export default class NavBar extends React.Component{
             dropDownOpened: !this.state.dropDownOpened
         })
     }
+    toggleConfirmModal(){
+        this.setState({confirmModal: !this.state.confirmModal})
+    }
+    confirmOperation(e){
+        if(e.target.id === "yes")
+            this.logout();
+        else
+            this.toggleConfirmModal();
+    }
+    logout(){
+        SpringHelper.signout()
+        .then(response => {
+            console.log(response.status);
+            if(response.status === 200){
+                window.localStorage.removeItem("accessToken");
+                window.localStorage.removeItem("userId");
+                window.localStorage.removeItem("username");
+                window.localStorage.removeItem("role");
+            }
+        })
+        this.setState({
+            username:"",
+            role: "CUSTOMER"
+        })
+    }   
     render(){
         //TODO: Dropdown list items are placeholder, replace with categories
         return <>
+            <Modal isOpen={this.state.confirmModal} toggle={this.toggleConfirmModal}>
+                <ModalHeader toggle={this.toggleConfirmModal}></ModalHeader>
+                <ModalBody><h5>Are you sure</h5></ModalBody>
+                <ModalFooter>
+                    <Button color="danger" id="yes" onClick={this.confirmOperation}>Yes</Button>
+                    <Button color="no" id="no" onClick={this.confirmOperation}>No</Button>
+                </ModalFooter>
+            </Modal>
            <Navbar color="light" light expand="md" id="nav">
                 <NavbarBrand href="/">E-Commerce</NavbarBrand>
                 <NavbarToggler onClick={this.toggle} />
@@ -53,6 +103,7 @@ export default class NavBar extends React.Component{
                         <NavItem>
                           <NavLink href="/About">About</NavLink>
                         </NavItem>
+                        {this.state.role === "ADMIN"?
                         <UncontrolledDropdown nav inNavbar>
                         <DropdownToggle nav caret>
                             Admin
@@ -64,21 +115,14 @@ export default class NavBar extends React.Component{
                             <DropdownItem>
                                 <NavLink href="/admin/products">Manage product</NavLink>
                             </DropdownItem>
+                            <DropdownItem>
+                                <NavLink href="/admin/categories">Manage category</NavLink>
+                            </DropdownItem>
                         </DropdownMenu>
                         </UncontrolledDropdown>
-                        {/* <UncontrolledDropdown nav inNavbar>
-                        <DropdownToggle nav caret>
-                            Categories
-                        </DropdownToggle>
-                        <DropdownMenu right>
-                            <DropdownItem>
-                                <NavLink href="/products">Categories 1</NavLink>
-                            </DropdownItem>
-                            <DropdownItem>
-                                <NavLink href="/products">Categories 2</NavLink>
-                            </DropdownItem>
-                        </DropdownMenu>
-                        </UncontrolledDropdown> */}
+                        :
+                        <>
+                        </>}
                     </Nav>
                     <InputGroup className="w-50">
                         <Input placeholder="Search"></Input>
@@ -87,14 +131,15 @@ export default class NavBar extends React.Component{
                         </InputGroupAddon>
                     </InputGroup>
                 </Collapse>
-                {this.context?
+                {this.state.username !== ""?
                     
                 <ButtonDropdown isOpen={this.state.dropDownOpened} toggle={this.toggleDropDown}>
-                    <DropdownToggle>{this.context.username}</DropdownToggle>
+                    <DropdownToggle>{this.state.username}</DropdownToggle>
                     <DropdownMenu>
                         <DropdownItem>Edit profile</DropdownItem>
+                        <DropdownItem>Cart</DropdownItem>
                         <DropdownItem divider></DropdownItem>
-                        <DropdownItem className="text-danger">Logout</DropdownItem>
+                        <DropdownItem onClick={this.logout} className="text-danger">Logout</DropdownItem>
                     </DropdownMenu>
                 </ButtonDropdown>
                 :
@@ -107,4 +152,4 @@ export default class NavBar extends React.Component{
         </>;
     }
 }
-NavBar.contextType=UserContext;
+export default withRouter(NavBar);
