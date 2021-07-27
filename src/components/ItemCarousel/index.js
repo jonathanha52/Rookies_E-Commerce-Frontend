@@ -15,19 +15,22 @@ export default class ItemCarousel extends React.Component{
             animating: false,
             items:[
                 {
-                  src:"http://via.placeholder.com/1024x500.svg/918d8d",
+                  src:"https://i.imgur.com/t8jAyWZ.jpg",
                   altText: 'Slide 1',
-                  caption: 'Slide 1'
+                  caption: 'In the comfort of your home',
+                  header: 'Get everything'
                 },
                 {
-                  src:"http://via.placeholder.com/1024x500.svg/b5b1b1",
+                  src:"https://i.imgur.com/aIjz4qC.jpg",
                   altText: 'Slide 2',
-                  caption: 'Slide 2'
+                  caption: 'Focus on your passion',
+                  header: 'Time is precious'
                 },
                 {
-                  src:"http://via.placeholder.com/1024x500.svg/d3dbd5",
+                  src:"https://i.imgur.com/DqKAJYM.jpg",
                   altText: 'Slide 3',
-                  caption: 'Slide 3'
+                  caption: 'Invest in your future',
+                  header: 'Save money'
                 }
               ]
         }
@@ -59,7 +62,7 @@ export default class ItemCarousel extends React.Component{
                 key={item.src}
               >
                 <img src={item.src} alt={item.altText} />
-                <CarouselCaption captionText={item.caption} captionHeader={item.caption} />
+                <CarouselCaption captionText={item.caption} captionHeader={item.header} />
               </CarouselItem>
             );
           });
