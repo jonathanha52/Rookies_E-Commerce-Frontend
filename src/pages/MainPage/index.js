@@ -18,8 +18,14 @@ export default class MainPage extends React.Component{
         super(props);
         this.state = {
             product: [],
-            categories: []
+            categories: [],
+            sortType: "name",
+            sortOrder: "ascending",
+            filterBy: "all"
         }
+        this.categoryFilter = this.categoryFilter.bind(this); 
+        this.sortProduct = this.sortProduct.bind(this);
+        this.applyFilter = this.applyFilter.bind(this);
     }
     componentDidMount(){
 
@@ -58,11 +64,25 @@ export default class MainPage extends React.Component{
     }
     applyFilter(e){
         e.preventDefault();
-        console.log(e.target)
+        this.setState({
+            sortType: e.target.sortType.value,
+            sortOrder: e.target.sortOrder.value,
+            filterBy: e.target.categories.value
+        })
     }
-    sortProduct(type){
+    categoryFilter(a){
+        if(this.state.filterBy.toLowerCase() === "all")
+            return true;
+        return a.category.name.toLowerCase() === this.state.filterBy.toLowerCase();
+    }
+    sortProduct(a, b, type){
         if(type === "price"){
-            return 
+            return this.state.sortOrder.toLowerCase() === "ascending" ? a.price - b.price : b.price - a.price;
+        }else if(type === "name"){
+            if(this.state.sortOrder.toLowerCase() === "ascending")  
+                return a.productName < b.productName ? -1 : 1;
+            else
+                return a.productName > b.productName ? -1 : 1;
         }
     }
     render(){
@@ -79,11 +99,8 @@ export default class MainPage extends React.Component{
                             <Label for="sortType" sm={3}>Sort by:</Label>
                             <Col>
                                 <Input type="select" name="sortType" id="sortType">
-                                    <option value="none">None</option>
                                     <option value="price">Price</option>
                                     <option value="name">Name</option>
-                                    <option value="rating">Rating</option>
-                                    <option value="date">Added date</option>
                                 </Input>
                             </Col>
                         </FormGroup>
@@ -101,7 +118,7 @@ export default class MainPage extends React.Component{
                             <Col>
                                 <Input type="select" name="categories" id="categories">
                                    {this.state.categories.map(entry => (
-                                        <option value={entry.id}>{entry.name}</option>
+                                        <option value={entry.name.toLowerCase()}>{entry.name}</option>
                                    )) }
                                 </Input>
                             </Col>
@@ -112,7 +129,7 @@ export default class MainPage extends React.Component{
                 <Col>
                     <Row>
                         {
-                            this.state.product.map(entry => (
+                            this.state.product.sort((a,b) => this.sortProduct(a,b,this.state.sortType)).filter((a) => this.categoryFilter(a, this.state.filterBy)).map(entry => (
                                 <Col xs="3" key={entry.id}>
                                     <Item product={entry}/>
                                 </Col>

@@ -35,13 +35,32 @@ export default class SpringHelper{
                 data: data
             })
     }
-    static put(name, data){
+    static put(name, data, auth=true){
+        const token = window.localStorage.getItem("accessToken")
+        if(auth){
+            return axios({
+                method: "put",
+                url: HOST + name,
+                data: data,
+                headers:{
+                    "Authorization": "Bearer " + token
+                }
+            })
+        }else{
+            return axios({
+                method: "put",
+                url: HOST + name,
+                data: data,
+            })
+        }
+        
+    }
+    static delete(name){
         const token = window.localStorage.getItem("accessToken")
         return axios({
-            method: "put",
+            method: "delete",
             url: HOST + name,
-            data: data,
-            headers:{
+            headers: {
                 "Authorization": "Bearer " + token
             }
         })

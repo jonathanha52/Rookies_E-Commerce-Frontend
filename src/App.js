@@ -10,7 +10,6 @@ import { UserContext } from './context/UserContext';
 import ProductManage from './pages/ProductManage';
 import CategoryManage from './pages/CategoryManage';
 import AboutMe from './pages/AboutMe';
-import PageNotFound from './pages/PageNotFound';
 import CustomerInfoForm from './components/CustomerInfoForm';
 import LoginForm from './components/LoginForm'
 import { Forbidden } from './pages/Forbidden'; 
@@ -28,10 +27,6 @@ class App extends React.Component {
       username: window.localStorage.getItem("username") == null ? "" : window.localStorage.getItem("username"),
       role: window.localStorage.getItem("role") == null ? "CUSTOMER" : window.localStorage.getItem("role")
     });
-  }
-  componentWillUnmount(){
-    localStorage.removeItem("username");
-    localStorage.removeItem("role");
   }
   render()
   {
@@ -53,25 +48,15 @@ class App extends React.Component {
               <Route exact path="/About">
                 <AboutMe />
               </Route>
-              <Route exact path="/customer/:id" component={CustomerInfoForm}/>
+              <Route exact path="/customer/:id">
+                <CustomerInfoForm edit></CustomerInfoForm>
+              </Route>
               <Route exact path="/product/:id" component={ProductPage}/>
-              {/* <Route exact path="/admin/customers">
-                <CustomerManage></CustomerManage>
-              </Route>
-              <Route exact path="/admin/products">
-                <ProductManage></ProductManage>
-              </Route>
-              <Route exact path="/admin/categories">
-                <CategoryManage></CategoryManage>
-              </Route> */}
               <ProtectedRoute exact path="/admin/customers" component={CustomerManage} />
               <ProtectedRoute exact path="/admin/products" component={ProductManage} />
               <ProtectedRoute exact path="/admin/categories" component={CategoryManage} />
               <Route exact path="/forbidden">
                 <Forbidden />
-              </Route>
-              <Route>
-                <PageNotFound />
               </Route>
               </div>
             </Switch>
