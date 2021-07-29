@@ -1,5 +1,5 @@
 import React from 'react';
-import { Table, Button,Modal, ModalHeader, ModalBody, ModalFooter }  from 'reactstrap';
+import { Table, Button }  from 'reactstrap';
 import SpringHelper from '../../api/spring_api';
 
 export default class UserManage extends React.Component{
