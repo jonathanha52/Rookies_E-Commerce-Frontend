@@ -21,8 +21,8 @@ class LoginForm extends React.Component{
         e.preventDefault();
         if(this.state.emailIsValid && this.state.usernameIsValid){
             var credential = {
-                username: e.target.username.value,
-                password: e.target.password.value
+                username: e.target.username.value.trim(),
+                password: e.target.password.value.trim()
             }
             SpringHelper.post("auth/signin", credential)
             .then(async response => {
@@ -43,7 +43,7 @@ class LoginForm extends React.Component{
         }
     }
     validateEmptyField(e){
-        if(e.target.value.length === 0){
+        if(e.target.value.trim().length === 0){
             if(e.target.id === "username")
                 this.setState({usernameIsValid: false})
             else
@@ -66,7 +66,7 @@ class LoginForm extends React.Component{
                     invalid={this.state.usernameIsValid != null && !this.state.usernameIsValid} 
                     className="m-1" type="text" name="username" id="username" placeholder="Username" 
                     onChange={this.validateEmptyField}></Input>
-                {!this.state.usernameIsValid ? <FormFeedback invalod>Username must not be blank</FormFeedback> : <></>}
+                {!this.state.usernameIsValid ? <FormFeedback invalid>Username must not be blank</FormFeedback> : <></>}
             </FormGroup>
             <FormGroup className="m-3">
                 <Label className="m-1" for="password">Password</Label>

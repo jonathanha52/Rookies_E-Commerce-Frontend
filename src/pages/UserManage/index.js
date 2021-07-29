@@ -7,37 +7,35 @@ export default class UserManage extends React.Component{
         super(props);
         this.state = {
             userList:[],
-            confirmModal: false
+            confirmModal: false,
+            deletingId: -1
         }
-        this.toggleConfirmModal = this.toggleConfirmModal.bind(this);
         this.deleteUser = this.deleteUser.bind(this);
     }
     componentDidMount(){
-        SpringHelper.get("users")
-        .then((response) => {
-            this.setState({userList: response.data})
-        })
+        this.fetchAllUser();
     }
+    fetchAllUser() {
+        SpringHelper.get("users", true)
+            .then((response) => {
+                this.setState({ userList: response.data });
+            });
+    }
+
     deleteUser(e){
-        this.toggleConfirmModal();
-    }
-    toggleConfirmModal(){
-        this.setState({confirmModal: !this.state.confirmModal});
+        SpringHelper.delete("users/admin/"+e.target.id)
+        .then(response => {
+            if(response.status === 200){
+                this.fetchAllUser();
+            }
+        })
+        .catch(exception => {
+            console.log(exception);
+        })
     }
     render(){
         return <>
-        <Modal>
-            <ModalHeader>
-                <h5>Are you sure</h5>
-            </ModalHeader>
-            <ModalBody>
-                <p className="text-danger">This action cannot be undone</p>
-            </ModalBody>
-            <ModalFooter>
-                <Button color="danger">Confirm</Button>
-                <Button color="success">Return</Button>
-            </ModalFooter>
-        </Modal>
+        <center><h3>MANAGE USERS</h3></center>
             <Table bordered small hover className="mt-4">
                 <thead>
                     <tr>
@@ -61,7 +59,7 @@ export default class UserManage extends React.Component{
                         <td>{entry.role.roleName}</td>
                         
                         {!entry.username.includes("admin")
-                        ?<td><Button color="danger" onClick={this.deleteUser}>Delete</Button></td>
+                        ?<td><Button id={entry.userID} color="danger" onClick={this.deleteUser}>Delete</Button></td>
                         :<></>}
                     </tr>
                 ))}

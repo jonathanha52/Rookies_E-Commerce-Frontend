@@ -1,10 +1,11 @@
 import React from 'react';
-import { Container, Row, Col, Card, CardBody, CardTitle, CardText, Button, Input } from 'reactstrap';
+import { Container, Row, Col, Card, CardBody, CardTitle, CardText, Button, Input, Form } from 'reactstrap';
 import Comment from '../../components/Comment';
 import "./productInfo.css";
 import SpringHelper from '../../api/spring_api';
 import { Rating } from 'react-simple-star-rating';
 import { Link } from 'react-router-dom';
+import { CommentContext } from '../../context/CommentContext';
 
 export default class ProductPage extends React.Component{
     constructor(props){
@@ -24,7 +25,7 @@ export default class ProductPage extends React.Component{
             },
             average: 0,
             ratingValue: 0,
-            rating:[],
+            ratingList:[],
             quantity:1,
             customer:null,
             validComment: true,
@@ -41,6 +42,9 @@ export default class ProductPage extends React.Component{
         this.onQuantityChange = this.onQuantityChange.bind(this);
         this.handleRating = this.handleRating.bind(this);
         this.getCommentFromUser = this.getCommentFromUser.bind(this);
+        this.getAverageRating = this.getAverageRating.bind(this);
+        this.comment =this.comment.bind(this);
+        this.fetchAllRating = this.fetchAllRating.bind(this);
     }
     componentDidMount(){
         let id = this.props.match.params.id;
@@ -49,17 +53,57 @@ export default class ProductPage extends React.Component{
             this.setState({product: response.data})
         })
 
-        SpringHelper.get("ratings/public/productId="+id)
-        .then((response) => {
-            console.log(response);
-            if(response.state === 200){
-                this.setState({rating: response.data});
-            }
-        })
-        .catch(exception => {
-            console.log(exception);
-        })
-        this.getCommentFromUser();
+        this.fetchAllRating(id);
+    }
+    fetchAllRating(id) {
+        SpringHelper.get("ratings/public/productId=" + id)
+            .then((response) => {
+                if (response.status == 200) {
+                    this.setState({ ratingList: response.data });
+                    this.getCommentFromUser();
+                    this.getAverageRating();
+                }
+            })
+            .catch(exception => {
+                console.log(exception);
+            });
+    }
+
+    comment(e){
+        e.preventDefault();
+        let data = {
+            rating: this.state.ratingValue,
+            userId: window.localStorage.getItem("userId"),
+            productId: this.props.match.params.id,
+            comment: e.target.comment.value
+        }
+        if(this.state.userComment != null){
+            SpringHelper.put("ratings/public", data, false)
+            .then(response => {
+                console.log(response);
+                if(response.status === 200)
+                    this.setState({
+                        userComment: data
+                    })
+            })
+            .catch(exception => {
+                console.log(exception);
+            })
+        }else{
+            SpringHelper.post("ratings/public", data, false)
+            .then(response => {
+                console.log(response);
+                if(response.status === 200)
+                    this.setState({
+                        userComment: data,
+                        rating: this.state.rating.push(data)
+                    })
+            })
+            .catch(exception => {
+                console.log(exception);
+            })
+        }
+
     }
     formatCurrency(currency){
         return(this.currencyFormatter.format(currency));
@@ -73,12 +117,22 @@ export default class ProductPage extends React.Component{
     getCommentFromUser(){
         let userId = window.localStorage.getItem("userId");
         if(userId != null){
-            for(let i = 0; i < this.state.rating.length; i++){
-                if(this.state.rating[i].user.userID == userId)
-                    this.setState({userComment: this.state.rating[i]});
-                    return; 
+            for(let i = 0; i < this.state.ratingList.length; i++){
+                if(this.state.ratingList[i].user.userID == userId){
+                    console.log(this.state.ratingList[i]);
+                    this.setState({userComment: this.state.ratingList[i]});
+                    break; 
+                }          
             }
         }
+    }
+    getAverageRating(){
+        let temp = 0;
+        for(let i = 0; i < this.state.ratingList.length; i++){  
+            temp += this.state.ratingList[i].rating;
+        }
+        temp = temp/this.state.ratingList.length;
+        this.setState({average: temp});
     }
     render(){
         return <Container className="mt-4">
@@ -95,47 +149,76 @@ export default class ProductPage extends React.Component{
                             <CardBody>
                                 <CardTitle tag="h4">Price: {this.formatCurrency(this.state.product.price)}</CardTitle>
                             </CardBody>
-                            <CardText>{this.state.product.productDescription}</CardText>
-                            <CardText>Quantity</CardText>
-                            <Input min="1" type="number" className="w-25" value={this.state.quantity} onChange={this.onQuantityChange}/>
-                            <Button className="top-buffer">Add to card</Button>
+                            <Rating ratingValue={this.state.average}></Rating>
                         </CardBody>
                     </Card>
                 </Col>
             </Row>
             <Row className="top-buffer">
-                <h5>Your comment</h5>
+                <h5>Product description</h5>
             </Row>
-            {this.state.userComment != null ? 
-            <Row className="top-buffer">
-                <Comment username="admin" comment="This is a test comment"/>
+            <Row>
+                <Card>
+                    <CardBody>
+                        <CardText>{this.state.product.productDescription}</CardText>
+                    </CardBody>
+                </Card>
             </Row>
-            :
-            (window.localStorage.getItem("username") ? <Row className="top-buffer">
+            <Row>
+                <h3>Edit comment</h3>
+            </Row>
+            <Row>
                 <Card>
                     <CardBody>
                         <CardTitle>{window.localStorage.getItem("username")}</CardTitle>
                         <Rating onClick={this.handleRating} ratingValue={this.state.ratingValue}></Rating>
-                        <Input type="textarea" id="comment" name="comment"></Input>
+                        <Form onSubmit={this.comment}>
+                            <Input type="textarea" id="comment" name="comment"></Input>
+                            <Button>Comment</Button>
+                        </Form>
                     </CardBody>
                 </Card>
             </Row>
-            :
-            <Row>
-                <Card>
-                    <CardBody>
-                        <CardText>You must <Link to="/signin">log in</Link> to comment</CardText>
-                    </CardBody>
-                </Card>
-            </Row>)}
+            <Row className="top-buffer">
+                <h5>Your comment</h5>
+            </Row>
+            {
+                window.localStorage.getItem("username") ?
+                (
+                    this.state.userComment != null ?
+                    <Row className="top-buffer">
+                        <Comment rating={this.state.userComment.rating} 
+                        comment={this.state.userComment.comment}
+                        username={window.localStorage.getItem("username")}/>
+                    </Row>
+                    :
+                    <Row className="top-buffer">
+                        <Card>
+                            <CardBody>
+                                <CardText>You haven't rated this product yet.</CardText>
+                            </CardBody>
+                        </Card>
+                    </Row>
+                )
+                :
+                <Row>
+                    <Card>
+                        <CardBody>
+                            <CardText>You must <Link to="/signin">log in</Link> to comment</CardText>
+                        </CardBody>
+                    </Card>
+                </Row>
+            }
             <Row className="top-buffer">
                 <h5>Other's comment</h5>
             </Row>
             {
-                this.state.rating.map(entry => (
+                this.state.ratingList
+                .filter(e => {return e.user.userID != window.localStorage.getItem("userId")})
+                .map(entry => (
                     <>
                     <Row className="top-buffer">
-                        <Comment username={entry.user.username} comment={entry.comment} rating={entry.rating}/>
+                        <Comment rating={entry.rating} comment={entry.comment} username={entry.user.username}/>
                     </Row>
                     </>
                 ))

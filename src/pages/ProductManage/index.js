@@ -10,8 +10,10 @@ export default class ProductManage extends React.Component{
         this.state = {
             productList:[],
             formModal: false,
-            confirmModal: false,
+            // confirmModal: false,
             updatingProduct: null,
+            successModal: false,
+            failedModal: false
         }
         this.placeholderProduct = {
             id: 1,
@@ -25,65 +27,96 @@ export default class ProductManage extends React.Component{
             updatedDate: "2021-07-25"
         }
         this.toggleFormModal = this.toggleFormModal.bind(this);
-        this.toggleConfirmModal = this.toggleConfirmModal.bind(this);
+        // this.toggleConfirmModal = this.toggleConfirmModal.bind(this);
         this.deleteProduct = this.deleteProduct.bind(this);
         this.editProduct = this.editProduct.bind(this);
+        this.toggleSuccesModal = this.toggleSuccesModal.bind(this);
+        this.toggleFailedModal = this.toggleFailedModal.bind(this);
+        this.addProduct = this.addProduct.bind(this);
+        this.fetchAllProduct = this.fetchAllProduct.bind(this);
     }
     componentDidMount(){
+        this.fetchAllProduct();
+    }
+    fetchAllProduct() {
         SpringHelper.get("products/public")
+            .then(response => {
+                if (response.status === 200) {
+                    this.setState({ productList: response.data });
+                }
+                else {
+                    this.setState({ productList: [this.placeholderProduct] });
+                }
+            })
+            .catch(exception => {
+                alert("Error when making request" + exception);
+                this.setState({ productList: [this.placeholderProduct] });
+            });
+    }
+
+    toggleSuccesModal(){
+        this.setState({successModal: !this.state.successModal});
+    }
+    toggleFailedModal(){
+        this.setState({failedModal: !this.state.failedModal});
+    }
+    deleteProduct(e){
+        var temp = [...this.state.productList];
+        SpringHelper.delete("products/admin/id="+ e.target.id)
         .then(response => {
-            if(response.status === 200){
-                this.setState({productList: response.data})
-            }
-            else{
-                this.setState({productList: [this.placeholderProduct]})
-            }
+            if(response.status === 200)
+                for(let i = 0; this.state.productList.length; i++){
+                    if(this.state.productList[i].id == e.target.id){
+                        temp.splice(i, 1);
+                        this.setState({productList: temp});
+                        break;
+                    }
+                }
         })
         .catch(exception => {
-            alert("Error when making request" + exception);
-            this.setState({productList: [this.placeholderProduct]})
+            console.log(exception);
         })
     }
+    addProduct(){
+        this.setState({updatingProduct: null});
+        this.toggleFormModal();
+    }
     editProduct(e){
-        console.log(e.target.id);
-        this.setState({updatingProduct: this.state.productList[e.target.id-1]})
+        for(let i = 0; i < this.state.productList.length; i++){
+            if(this.state.productList[i].id == e.target.id)
+                this.setState({updatingProduct: this.state.productList[i]})
+        }
         this.toggleFormModal();
     }
     toggleFormModal(){
         this.setState({formModal: !this.state.formModal});
     }
-    toggleConfirmModal(){
-        this.setState({confirmModal: !this.state.confirmModal});
-    }
-    deleteProduct(){
-        alert("Deleted");
-        this.toggleConfirmModal();
-        //TODO: Implement
+    // toggleConfirmModal(){
+    //     this.setState({confirmModal: !this.state.confirmModal});
+    // }
+    sortById(a,b){
+        return a.id - b.id;
     }
     render(){
         return <>
         <center className="m-3">PRODUCT MANAGE</center>
         <ProductContext.Provider value={this.state.updatingProduct}>
+            <Modal isOpen={this.state.successModal} toggle={this.toggleSuccesModal}>
+                <ModalBody>
+                <h1 className="text-success">Delete product success</h1>
+                </ModalBody>
+            </Modal>
+            <Modal isOpen={this.state.failedModal} toggle={this.toggleFailedModal}>
+                <ModalBody>
+                <h1  className="text-danger">Delete product failed</h1>
+                </ModalBody>
+            </Modal>
             <Modal isOpen={this.state.formModal} toggle={this.toggleFormModal}>
                 <ModalBody>
-                        <ProductInfoForm />
+                        <ProductInfoForm onSuccess={this.fetchAllProduct}/>
                 </ModalBody>  
             </Modal>
-            <Modal className="top-margin" isOpen={this.state.confirmModal} toggle={this.toggleConfirmModal}>
-                <ModalBody>
-                    <h2 className="text-danger">Are you sure?</h2>
-                    <h3 className="text-danger">This cannot be undone</h3>
-                </ModalBody>
-                <ModalFooter>
-                    <Button onClick={this.deleteProduct}>Confirm</Button>
-                </ModalFooter>
-            </Modal>
-            <Modal className="left-margin" isOpen={this.state.previewModal} toggle={this.togglePreviewModal} backdrop={false} keyboard={false}>
-                <ModalBody>
-                    <img src={this.state.previewingImage} alt="Preview"></img>
-                </ModalBody>
-            </Modal>
-            <Button color="primary">Add product</Button>
+            <Button color="primary" onClick={this.addProduct}>Add product</Button>
             <Table bordered size="sm" hover className="mt-4">
                 <thead key="header">
                     <tr>
@@ -102,7 +135,7 @@ export default class ProductManage extends React.Component{
                 </thead>
                 <tbody key="body">
                     {
-                        this.state.productList.map(entry => (
+                        this.state.productList.sort(this.sortById).map(entry => (
                             <>
                             <tr id={entry.id} key={entry.id}>
                                 <th scope="row" key={entry.id}>{entry.id}</th>
@@ -114,7 +147,7 @@ export default class ProductManage extends React.Component{
                                 <td><a href={entry.imgUrl} target="_blank" rel="noreferrer" alt="Deleted or wrong url">{entry.imgUrl}</a></td>
                                 <td>{entry.createdDate}</td>
                                 <td>{entry.updatedDate}</td>
-                                <td><Button id={entry.id} color="danger" onClick={this.toggleConfirmModal}>Delete</Button></td>
+                                <td><Button id={entry.id} color="danger" onClick={this.deleteProduct}>Delete</Button></td>
                                 <td><Button id={entry.id} color="warning" onClick={this.editProduct}>Edit</Button></td>
                             </tr>
                             </>

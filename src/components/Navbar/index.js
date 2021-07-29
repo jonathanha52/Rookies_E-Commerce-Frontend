@@ -14,7 +14,6 @@ import {
     Button,
     InputGroup,
     InputGroupAddon,
-    ButtonDropdown,
     DropdownMenu,
     Modal,
     ModalHeader,
@@ -77,6 +76,7 @@ class NavBar extends React.Component{
                 window.localStorage.removeItem("userId");
                 window.localStorage.removeItem("username");
                 window.localStorage.removeItem("role");
+                this.props.history.push("/");
             }
         })
         this.setState({
@@ -100,9 +100,6 @@ class NavBar extends React.Component{
                 <NavbarToggler onClick={this.toggle} />
                 <Collapse isOpen={this.state.isOpen} navbar>
                     <Nav className="mr-auto" navbar>
-                        <NavItem>
-                          <NavLink href="/About">About</NavLink>
-                        </NavItem>
                         {this.state.role === "ADMIN"?
                         <UncontrolledDropdown nav inNavbar>
                         <DropdownToggle nav caret>
@@ -124,24 +121,19 @@ class NavBar extends React.Component{
                         <>
                         </>}
                     </Nav>
-                    <InputGroup className="w-50">
-                        <Input placeholder="Search"></Input>
-                        <InputGroupAddon addonType="append">
-                            <Button color="success">Search</Button>
-                        </InputGroupAddon>
-                    </InputGroup>
                 </Collapse>
                 {this.state.username !== ""?
                     
-                <ButtonDropdown isOpen={this.state.dropDownOpened} toggle={this.toggleDropDown}>
-                    <DropdownToggle>{this.state.username}</DropdownToggle>
+                <UncontrolledDropdown nav inNavbar>
+                    <DropdownToggle>Hello, {this.state.username}</DropdownToggle>
                     <DropdownMenu>
-                        <DropdownItem>Edit profile</DropdownItem>
-                        <DropdownItem>Cart</DropdownItem>
+                        <DropdownItem>
+                            <NavLink href={"/customer/"+window.localStorage.getItem("userId")}>Edit profile</NavLink>
+                        </DropdownItem>
                         <DropdownItem divider></DropdownItem>
                         <DropdownItem onClick={this.logout} className="text-danger">Logout</DropdownItem>
                     </DropdownMenu>
-                </ButtonDropdown>
+                </UncontrolledDropdown>
                 :
                     <>
                         <NavLink href="/signin">Login</NavLink>
