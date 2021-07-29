@@ -5,7 +5,6 @@ import "./productInfo.css";
 import SpringHelper from '../../api/spring_api';
 import { Rating } from 'react-simple-star-rating';
 import { Link } from 'react-router-dom';
-import { CommentContext } from '../../context/CommentContext';
 
 export default class ProductPage extends React.Component{
     constructor(props){

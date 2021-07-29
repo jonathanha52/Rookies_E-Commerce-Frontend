@@ -1,5 +1,5 @@
 import React from 'react';
-import { Table, Button, Modal, ModalBody, ModalFooter }  from 'reactstrap';
+import { Table, Button, Modal, ModalBody, UncontrolledCollapse }  from 'reactstrap';
 import ProductInfoForm from '../../components/ProductInfoForm';
 import SpringHelper from '../../api/spring_api';
 import './productManage.css';
@@ -10,7 +10,6 @@ export default class ProductManage extends React.Component{
         this.state = {
             productList:[],
             formModal: false,
-            // confirmModal: false,
             updatingProduct: null,
             successModal: false,
             failedModal: false
@@ -27,7 +26,6 @@ export default class ProductManage extends React.Component{
             updatedDate: "2021-07-25"
         }
         this.toggleFormModal = this.toggleFormModal.bind(this);
-        // this.toggleConfirmModal = this.toggleConfirmModal.bind(this);
         this.deleteProduct = this.deleteProduct.bind(this);
         this.editProduct = this.editProduct.bind(this);
         this.toggleSuccesModal = this.toggleSuccesModal.bind(this);
@@ -91,9 +89,6 @@ export default class ProductManage extends React.Component{
     toggleFormModal(){
         this.setState({formModal: !this.state.formModal});
     }
-    // toggleConfirmModal(){
-    //     this.setState({confirmModal: !this.state.confirmModal});
-    // }
     sortById(a,b){
         return a.id - b.id;
     }
@@ -144,7 +139,13 @@ export default class ProductManage extends React.Component{
                                 <td>{entry.category.name}</td>
                                 <td>{entry.price}</td>
                                 <td>{entry.unit}</td>
-                                <td><a href={entry.imgUrl} target="_blank" rel="noreferrer" alt="Deleted or wrong url">{entry.imgUrl}</a></td>
+                                <td>
+                                    <a href={entry.imgUrl} target="_blank" rel="noreferrer" alt="Deleted or wrong url">{entry.imgUrl}</a>
+                                    <Button id={"toggler-"+entry.id}>Preview</Button>
+                                    <UncontrolledCollapse toggler={"#toggler-"+entry.id}>
+                                        <img src={entry.imgUrl}></img>
+                                    </UncontrolledCollapse>
+                                </td>
                                 <td>{entry.createdDate}</td>
                                 <td>{entry.updatedDate}</td>
                                 <td><Button id={entry.id} color="danger" onClick={this.deleteProduct}>Delete</Button></td>

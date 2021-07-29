@@ -72,24 +72,22 @@ class CustomerInfoForm extends React.Component{
     onSubmit(e){
         e.preventDefault();
         if(this.props.edit){
-            if(this.state.usernameNotBlank && this.state.validEmail && this.state.usernameHasNoSpace){
-                let data = {
+            let data = {
                 username: e.target.username.value,
                 firstName: e.target.firstName.value,
-                lastLame: e.target.lastName.value,
+                lastName: e.target.lastName.value,
                 email: e.target.email.value,
-                }
-                let id = this.props.match.params.id;
-                SpringHelper.put("users/public/"+id, data)
-                .then(response => {
-                    if(response.status === 200)
-                        this.fetchUserInfo(id);
-                        alert("Edit successful!")
-                })
-                .catch(exception => {
-                    console.log(exception)
-                })
             }
+            let id = this.props.match.params.id;
+            SpringHelper.put("users/public/"+id, data, false)
+            .then(response => {
+                if(response.status === 200)
+                    this.fetchUserInfo(id);
+                    alert("Edit successful!")
+            })
+            .catch(exception => {
+                console.log(exception)
+            })
         }else{
             let data = {
                 username: e.target.username.value,
